@@ -3,28 +3,20 @@ package temp;
 public class Controller {
 
 	/* Variables */
-	private int temp;
-	private int[] preset = new int[2];
+	public static int temp = 0;
 
-	public final int MIN = 50;
-	public final int MAX = 100;
+	public final static int MIN = 50;
+	public final static int MAX = 100;
 	
-	/* Getters & Setters */
-	public int getTemp() {
-		return temp;
-	}
-
-	public void setTemp(int temp) {
+	public static boolean setTemp(int temp) {
 		if (temp > MAX) {
-			temp = MAX;
+            return false;
 		} else if (temp < MIN) {
-			temp = MIN;
+            return false;
 		}
-		this.temp = temp;
+		System.out.println("Setting temperature to: " + temp);
+	    return true;
 	}
 	
 	/* Methods */
-	public void setPreset(int val) {
-		setTemp(preset[val]);
-	}
 }
