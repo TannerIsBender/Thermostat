@@ -3,13 +3,14 @@ package gui;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 
 import javax.swing.*;
 import javax.swing.border.Border;
+import javax.swing.event.ChangeEvent;
+import javax.swing.event.ChangeListener;
 
-import temp.Controller;
+import tech.Battery;
+import tech.Controller;
 
 /**
  * @author Tanner
@@ -18,7 +19,7 @@ import temp.Controller;
 public class GUI {
     Border blackline = BorderFactory.createLineBorder(Color.black);
 
-    public static int[] preset = {60, 80, 100};
+    public static int[] preset = {100, 80, 60};
 
     private JButton high;
     private JButton medium;
@@ -26,25 +27,36 @@ public class GUI {
 
     private JLabel displayTemp = new JLabel("" + Controller.temp);
 
-    //Slider
-    private static final int FPS_MIN = 0;
-    private static final int FPS_MAX = 30;
-    private static final int FPS_INIT = Controller.temp;    //initial frames per second
-    JSlider framesPerSecond = new JSlider(JSlider.HORIZONTAL,
-            FPS_MIN, FPS_MAX, FPS_INIT);
+    /* Slider */
+    private static final int ticksStart = 60;
+    private static final int ticksEnd = 101;
+    //initial frames per second
+    private static int tickInit = Controller.temp;
+    JSlider tickMarks = new JSlider(JSlider.HORIZONTAL,
+            ticksStart, ticksEnd, tickInit);
 
     public void displaySlider(Container pane) {
-        pane.add(framesPerSecond);
-        framesPerSecond.setMajorTickSpacing(10);
-        framesPerSecond.setMinorTickSpacing(1);
-        framesPerSecond.setPaintTicks(true);
-        framesPerSecond.setPaintLabels(true);
-        framesPerSecond.setPaintLabels(false);
-        framesPerSecond.setBorder(
-                BorderFactory.createEmptyBorder(0,0,10,0));
-        framesPerSecond.setBounds(40, 285, 400, 50);
+        pane.add(tickMarks);
+        tickMarks.setMajorTickSpacing(4);
+        tickMarks.setMinorTickSpacing(1);
+        tickMarks.setPaintTicks(true);
+        tickMarks.setPaintLabels(false);
+        tickMarks.setBorder(BorderFactory.createEmptyBorder(0,0,10,0));
+        tickMarks.setBounds(110, 195, 235, 30);
     }
 
+    public void adjustSlider() {
+        tickMarks.addChangeListener(new ChangeListener() {
+            @Override
+            public void stateChanged(ChangeEvent e) {
+                Controller.temp = tickMarks.getValue();
+                tickInit = Controller.temp;
+                displayTemperature();
+//                System.out.println("Slider value: " + tickMarks.getValue());
+//                System.out.println("Temp value: " + Controller.temp);
+            }
+        });
+    }
 
     /**
      * Adds objects to the Jframe
@@ -58,15 +70,21 @@ public class GUI {
     }
     
     private void daBounds() {
-    	high.setBounds(20, 95, 50, 30);
-    	medium.setBounds(20, 150, 50, 30);
-    	low.setBounds(20, 205, 50, 30);
-        displayTemp.setBounds(150, 50, 200, 250);
+    	high.setBounds(20, 65, 50, 30);
+    	medium.setBounds(20, 120, 50, 30);
+    	low.setBounds(20, 185, 50, 30);
+        displayTemp.setBounds(150, -28, 270, 250);
     }
 
     private void displayTemperature() {
-        displayTemp = new JLabel("" + Controller.temp);
-        displayTemp.setFont(new Font("sans-serif", Font.PLAIN, 180));
+//        System.out.println("" + Controller.temp);
+        displayTemp.setText("" + Controller.temp);
+        displayTemp.setFont(new Font("sans-serif", Font.PLAIN, 160));
+    }
+
+    private void displayBatteryLife() {
+        displayTemp.setText("" + (int) Battery.getBattery() + " %");
+        displayTemp.setFont(new Font("sans-serif", Font.PLAIN, 16));
     }
 
     private void buttonNames() {
@@ -74,13 +92,19 @@ public class GUI {
     	medium = new JButton("M");
     	low = new JButton("L");
     }
-    
+
+    private void presetClick(int n) {
+        Controller.temp = preset[n];
+        tickMarks.setValue(preset[n]);
+        displayTemperature();
+    }
+
     private void buttonActions() {
     	high.addActionListener(new ActionListener() {
 			@Override
 			public void actionPerformed(ActionEvent e) {
                 if (Controller.setTemp(preset[0])) {
-                    Controller.temp = preset[0];
+                    presetClick(0);
                 }
 			}
 		});
@@ -89,7 +113,7 @@ public class GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
                 if (Controller.setTemp(preset[1])) {
-                    Controller.temp = preset[1];
+                    presetClick(1);
                 }
 			}
 		});
@@ -97,7 +121,7 @@ public class GUI {
 			@Override
 			public void actionPerformed(ActionEvent e) {
                 if (Controller.setTemp(preset[2])) {
-                    Controller.temp = preset[2];
+                    presetClick(2);
                 }
 			}
 		});
@@ -105,15 +129,17 @@ public class GUI {
     
 	public GUI() {
         JFrame frame = new JFrame("Thermostat");
-        frame.setSize(500, 400);
+        frame.setSize(500, 300);
         Container pane = frame.getContentPane();
         pane.setLayout(null);
         new JPanel();
+        adjustSlider();
 
         displaySlider(pane);
         buttonNames();
         displayTemperature();
         daBounds();
+//        displayBatteryLife();
         paneAdd(pane);
 
         buttonActions();
